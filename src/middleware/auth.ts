@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/User";
+import UnAuthorizedError from "../errors/unAuthorizedError";
+import NotFoundError from "../errors/notfoundError";
+import { User as IUser } from "../types/global";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -11,26 +14,17 @@ export const auth = async (
   res: Response,
   next: NextFunction
 ) => {
-  try {
-    const token = req.header("Authorization")?.replace("Bearer ", "");
+  const token = req.signedCookies.accessToken;
 
-    if (!token) {
-      throw new Error();
-    }
-
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "your-secret-key"
-    );
-    const user = await User.findOne({ _id: (decoded as any)._id });
-
-    if (!user) {
-      throw new Error();
-    }
-
-    req.user = user;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: "Please authenticate." });
+  if (!token) {
+    throw new UnAuthorizedError("Authentication token is required.");
   }
+
+  const decoded = jwt.verify(
+    token,
+    process.env.JWT_SECRET || "your-secret-key"
+  ) as IUser;
+
+  req.user = decoded;
+  next();
 };

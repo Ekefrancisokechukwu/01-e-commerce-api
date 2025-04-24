@@ -2,9 +2,9 @@ import { Router } from "express";
 import {
   register,
   login,
-  getProfile,
   refreshToken,
   logout,
+  getProfile,
 } from "../controllers/authController";
 import { auth } from "../middleware/auth";
 

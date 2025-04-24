@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 import bcrypt from "bcryptjs";
+import validator from "validator";
 
 export interface IUser extends Document {
   username: string;
@@ -15,21 +16,25 @@ const userSchema = new Schema<IUser>(
   {
     username: {
       type: String,
-      required: true,
+      required: [true, "Please provide a username"],
       unique: true,
       trim: true,
       minlength: 3,
     },
     email: {
       type: String,
-      required: true,
+      required: [true, "Please provide a email"],
       unique: true,
       trim: true,
       lowercase: true,
+      validate: {
+        validator: (email: string) => validator.isEmail(email),
+        message: "Please provide valid email",
+      },
     },
     password: {
       type: String,
-      required: true,
+      required: [true, "Please provide a password"],
       minlength: 6,
     },
     refreshTokens: [

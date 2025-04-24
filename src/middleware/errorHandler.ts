@@ -1,5 +1,34 @@
 import { Request, Response, NextFunction } from "express";
 
+export interface CustomError extends Error {
+  statusCode?: number;
+  errors?: { [key: string]: { message: string } };
+}
+
+export const errorHandler = (
+  err: CustomError,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const customError = {
+    statusCode: err.statusCode || 500,
+    message: err.message || "Something went wrong",
+  };
+
+  if (err.name === "ValidationError" && err.errors) {
+    customError.statusCode = 400;
+    customError.message = Object.values(err.errors)
+      .map((item) => item.message)
+      .join(",");
+  }
+
+  res.status(customError.statusCode).json({
+    success: false,
+    error: customError.message,
+  });
+};
+
 export class AppError extends Error {
   statusCode: number;
   status: string;
@@ -14,25 +43,3 @@ export class AppError extends Error {
     Error.captureStackTrace(this, this.constructor);
   }
 }
-
-export const errorHandler = (
-  err: Error | AppError,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  if (err instanceof AppError) {
-    res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-    });
-
-    return;
-  }
-
-  console.error("Error:", err);
-  res.status(500).json({
-    status: "error",
-    message: "Something went wrong",
-  });
-};

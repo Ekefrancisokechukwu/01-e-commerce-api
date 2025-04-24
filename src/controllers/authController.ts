@@ -1,13 +1,17 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/User";
-import { generateTokens } from "../lib/utils";
+import { attachcookiesToResponse, generateTokens } from "../libs/utils";
 import { AppError } from "../middleware/errorHandler";
 import BadRequestError from "../errors/badRequestError";
 import UnAuthenticatedError from "../errors/badRequestError";
 
 export const register = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
+
+  if (!email || !password || !username) {
+    throw new BadRequestError("Provide all credentials");
+  }
 
   // Check if user already exists
   const existingUser = await User.findOne({ $or: [{ email }, { username }] });
@@ -25,7 +29,12 @@ export const register = async (req: Request, res: Response) => {
   await user.save();
 
   // Generate tokens
-  const { accessToken, refreshToken } = generateTokens(user);
+  const { accessToken, refreshToken } = generateTokens({
+    email: user.email,
+    id: user._id as string,
+    username: user.username,
+  });
+
   await user.addRefreshToken(refreshToken);
 
   res.status(201).json({
@@ -55,7 +64,11 @@ export const login = async (req: Request, res: Response) => {
   }
 
   // Generate tokens
-  const { accessToken, refreshToken } = generateTokens(user);
+  const { accessToken, refreshToken } = attachcookiesToResponse(res, {
+    id: user._id as string,
+    email: user.email,
+    username: user.username,
+  });
   await user.addRefreshToken(refreshToken);
 
   res.json({
@@ -89,7 +102,11 @@ export const refreshToken = async (req: Request, res: Response) => {
   }
 
   // Generate new tokens
-  const { accessToken, refreshToken: newRefreshToken } = generateTokens(user);
+  const { accessToken, refreshToken: newRefreshToken } = generateTokens({
+    email: user.email,
+    id: user._id as string,
+    username: user.username,
+  });
 
   // Remove old refresh token and add new one
   await user.removeRefreshToken(refreshToken);
@@ -117,10 +134,6 @@ export const logout = async (req: Request, res: Response) => {
 };
 
 export const getProfile = async (req: Request, res: Response) => {
-  try {
-    const user = await User.findById((req as any).user._id).select("-password");
-    res.json(user);
-  } catch (error) {
-    res.status(400).json({ error: "Error fetching profile" });
-  }
+  const user = await User.findById((req as any).user.id).select("-password");
+  res.json(user);
 };
