@@ -23,6 +23,7 @@ export const attachcookiesToResponse = (res: Response, tokenUser: User) => {
 
   const oneDay = 1000 * 60 * 60 * 24;
 
+  // testings
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     expires: new Date(Date.now() + oneDay),
@@ -31,4 +32,12 @@ export const attachcookiesToResponse = (res: Response, tokenUser: User) => {
   });
 
   return { refreshToken, accessToken };
+};
+
+export const generateSKU = (name: string, category: string) => {
+  const namePart = name.substring(0, 3).toUpperCase();
+  const categoryPart = category.substring(0, 2).toUpperCase();
+  const randomPart = Math.floor(1000 + Math.random() * 9000);
+
+  return `${namePart}-${categoryPart}-${randomPart}`;
 };

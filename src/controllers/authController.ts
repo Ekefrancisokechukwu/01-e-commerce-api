@@ -2,9 +2,9 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/User";
 import { attachcookiesToResponse, generateTokens } from "../libs/utils";
-import { AppError } from "../middleware/errorHandler";
 import BadRequestError from "../errors/badRequestError";
 import UnAuthenticatedError from "../errors/badRequestError";
+import NotFoundError from "../errors/notfoundError";
 
 export const register = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
@@ -33,6 +33,7 @@ export const register = async (req: Request, res: Response) => {
     email: user.email,
     id: user._id as string,
     username: user.username,
+    role: user.role,
   });
 
   await user.addRefreshToken(refreshToken);
@@ -51,34 +52,46 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  // Find user by email
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw new AppError("User not found", 404);
+  // Validate input
+  if (!email || !password) {
+    throw new BadRequestError("Email and password are required.");
   }
 
-  // Check password
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Find user by email
+  const user = await User.findOne({ email: normalizedEmail });
+  if (!user) {
+    throw new UnAuthenticatedError("Invalid credentials.");
+  }
+
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
-    throw new UnAuthenticatedError("Invalid credentials");
+    throw new UnAuthenticatedError("Invalid credentials.");
   }
 
-  // Generate tokens
-  const { accessToken, refreshToken } = attachcookiesToResponse(res, {
+  const payload = {
     id: user._id as string,
-    email: user.email,
     username: user.username,
-  });
+    email: user.email,
+    role: user.role,
+  };
+
+  const { accessToken, refreshToken } = attachcookiesToResponse(res, payload);
+
+  // Persist refresh token
   await user.addRefreshToken(refreshToken);
 
-  res.json({
+  res.status(200).json({
+    success: true,
+    message: "Login successful.",
     user: {
       id: user._id,
       username: user.username,
       email: user.email,
+      role: user.role,
     },
     accessToken,
-    refreshToken,
   });
 };
 
@@ -106,6 +119,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     email: user.email,
     id: user._id as string,
     username: user.username,
+    role: user.role,
   });
 
   // Remove old refresh token and add new one
@@ -136,4 +150,19 @@ export const logout = async (req: Request, res: Response) => {
 export const getProfile = async (req: Request, res: Response) => {
   const user = await User.findById((req as any).user.id).select("-password");
   res.json(user);
+};
+
+export const updateProfile = async (req: Request, res: Response) => {
+  const { username, password } = req.body;
+
+  const userExists = await User.findOne({ username: req.user?.username });
+
+  if (!userExists) {
+    throw new NotFoundError("user not found");
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "profile updated successful.",
+  });
 };

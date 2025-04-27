@@ -4,7 +4,7 @@ export const notfound = (req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({
     success: false,
     error: {
-      message: `Not Found - ${req.originalUrl}`,
+      message: `Route Not Found - ${req.originalUrl}`,
     },
   });
 };

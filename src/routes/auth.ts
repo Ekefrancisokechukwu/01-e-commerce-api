@@ -5,6 +5,7 @@ import {
   refreshToken,
   logout,
   getProfile,
+  updateProfile,
 } from "../controllers/authController";
 import { auth } from "../middleware/auth";
 
@@ -16,7 +17,7 @@ router.post("/login", login);
 router.post("/refresh-token", refreshToken);
 
 // Protected routes
-router.get("/profile", auth, getProfile);
+router.route("/profile").get(auth, getProfile).put(auth, updateProfile);
 router.post("/logout", auth, logout);
 
 export default router;

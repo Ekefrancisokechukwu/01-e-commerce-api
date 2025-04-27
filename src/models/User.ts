@@ -6,6 +6,7 @@ export interface IUser extends Document {
   username: string;
   email: string;
   password: string;
+  role: "admin" | "customer";
   refreshTokens: string[];
   comparePassword(candidatePassword: string): Promise<boolean>;
   addRefreshToken(token: string): Promise<void>;
@@ -36,6 +37,11 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: [true, "Please provide a password"],
       minlength: 6,
+    },
+    role: {
+      type: String,
+      default: "customer",
+      enum: ["admin", "customer"],
     },
     refreshTokens: [
       {

@@ -3,6 +3,9 @@ import { Request, Response, NextFunction } from "express";
 export interface CustomError extends Error {
   statusCode?: number;
   errors?: { [key: string]: { message: string } };
+  code?: number;
+  value?: string;
+  path?: string;
 }
 
 export const errorHandler = (
@@ -16,11 +19,25 @@ export const errorHandler = (
     message: err.message || "Something went wrong",
   };
 
+  console.log("ERROR:", err);
+
   if (err.name === "ValidationError" && err.errors) {
     customError.statusCode = 400;
     customError.message = Object.values(err.errors)
       .map((item) => item.message)
       .join(",");
+  }
+
+  if (err.code === 11000) {
+    const field = Object.keys((err as any).keyValue)[0];
+    const value = (err as any).keyValue[field];
+    customError.statusCode = 400;
+    customError.message = `Duplicate value for '${field}': "${value}". Please use a different value.`;
+  }
+
+  if (err.name === "CastError") {
+    customError.statusCode = 400;
+    customError.message = `Invalid ${err.path}: "${err.value}"`;
   }
 
   res.status(customError.statusCode).json({

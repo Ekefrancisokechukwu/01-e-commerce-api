@@ -28,3 +28,24 @@ export const auth = async (
   req.user = decoded;
   next();
 };
+
+export const checkRole = (...roles: string[]) => {
+  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      throw new UnAuthorizedError("Authentication required.");
+    }
+
+    const user = await User.findById((req.user as IUser).id);
+    if (!user) {
+      throw new NotFoundError("User not found.");
+    }
+
+    if (!roles.includes(user.role)) {
+      throw new UnAuthorizedError(
+        "You do not have permission to perform this action."
+      );
+    }
+
+    next();
+  };
+};
