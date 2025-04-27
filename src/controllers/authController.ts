@@ -155,14 +155,32 @@ export const getProfile = async (req: Request, res: Response) => {
 export const updateProfile = async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
-  const userExists = await User.findOne({ username: req.user?.username });
+  const user = await User.findOne({ username: req.user?.username });
 
-  if (!userExists) {
+  if (!user) {
     throw new NotFoundError("user not found");
   }
+
+  if (username) {
+    user.username = username;
+  }
+
+  if (password) {
+    if (password.length < 6) {
+      throw new BadRequestError("Password must be at least 6 characters");
+    }
+    user.password = password;
+  }
+
+  await user.save();
 
   res.status(200).json({
     success: true,
     message: "profile updated successful.",
+    user: {
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    },
   });
 };
