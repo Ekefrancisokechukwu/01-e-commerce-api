@@ -3,6 +3,7 @@ import "express-async-errors";
 import express, { Express, Request, Response } from "express";
 import authRoutes from "./routes/auth";
 import productRoutes from "./routes/product";
+import cartRoutes from "./routes/cart";
 import userRoutes from "./routes/user";
 import { errorHandler } from "./middleware/errorHandler";
 import cookieParser from "cookie-parser";
@@ -17,9 +18,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(process.env.JWT_SECRET));
 
 // Routes
-app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/cart", cartRoutes);
 app.use("/api/v1/products", productRoutes);
-app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", userRoutes);
 
 // Basic route
 app.get("/", (req: Request, res: Response) => {

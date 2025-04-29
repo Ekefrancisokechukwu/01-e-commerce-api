@@ -141,6 +141,13 @@ export const logout = async (req: Request, res: Response) => {
       await user.removeRefreshToken(refreshToken);
     }
 
+    res.cookie("accessToken", "", {
+      httpOnly: true,
+      expires: new Date(0),
+      secure: process.env.NODE_ENV === "production",
+      signed: true,
+    });
+
     res.json({ message: "Logged out successfully" });
   } catch (error) {
     res.status(400).json({ error: "Error logging out" });
