@@ -63,6 +63,7 @@ const productSchema = new mongoose.Schema<Product>(
       {
         type: String,
         lowercase: true,
+        trim: true,
       },
     ],
     rating: { type: Number, default: 0 },
