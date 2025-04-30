@@ -16,11 +16,15 @@ const router = Router();
 router.route("/").get(getAllProducts);
 router.route("/:id").get(getProduct);
 
-// Protected routes (Admin only)
-router.use(auth, checkRole("admin"));
-
-// Product routes
-router.route("/").post(upload.array("images"), addNewProduct);
-router.route("/:id").patch(updateProduct).delete(deleteProduct);
+// Admin-only
+router.post(
+  "/",
+  auth,
+  checkRole("admin"),
+  upload.array("images"),
+  addNewProduct
+);
+router.patch("/:id", auth, checkRole("admin"), updateProduct);
+router.delete("/:id", auth, checkRole("admin"), deleteProduct);
 
 export default router;

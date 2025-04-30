@@ -9,13 +9,13 @@ import {
 
 const router = Router();
 
-router.get("/", getProductReviews);
+router.get("/:productId/reviews", getProductReviews);
 
 // Protected routes
 router.use(auth);
 
 router
-  .route("/:productId")
+  .route("/:productId/reviews")
   .post(addProductReview)
   .patch(updateProductReview)
   .delete(deleteProductReview);

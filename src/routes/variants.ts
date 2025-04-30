@@ -19,3 +19,5 @@ router
   .route("/:productId/variants/:variantId")
   .patch(updateVariant)
   .delete(deleteVariant);
+
+export default router;
