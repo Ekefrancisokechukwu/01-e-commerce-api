@@ -37,6 +37,8 @@ const reviewSchema = new mongoose.Schema<Review>(
   { timestamps: true }
 );
 
+reviewSchema.index({ user: 1, product: 1 }, { unique: true });
+
 // Static method to update product rating
 reviewSchema.statics.updateProductRating = async function (
   productId: mongoose.Types.ObjectId

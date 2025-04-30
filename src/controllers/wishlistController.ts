@@ -32,7 +32,7 @@ export const addItemToWishlist = async (req: Request, res: Response) => {
   );
 
   if (alreadyExists) {
-    res.status(400).json({ message: "Product already in wishlist" });
+    throw new BadRequestError("Product already in wishlist");
   } else {
     wishlist.products.push(product._id as Types.ObjectId);
   }
@@ -53,7 +53,12 @@ export const getMyWishlist = async (req: Request, res: Response) => {
     "products"
   );
 
-  res.status(200).json({ success: true, wishlists });
+  res
+    .status(200)
+    .json({
+      success: true,
+      wishlists: wishlists || { user: user._id, products: [] },
+    });
 };
 
 export const removeItemFromWishlist = async (req: Request, res: Response) => {

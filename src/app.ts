@@ -6,6 +6,7 @@ import productRoutes from "./routes/product";
 import cartRoutes from "./routes/cart";
 import userRoutes from "./routes/user";
 import wishlistRoutes from "./routes/wishlist";
+import reviewRoutes from "./routes/review";
 import { errorHandler } from "./middleware/errorHandler";
 import cookieParser from "cookie-parser";
 import { notfound } from "./middleware/notfound";
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(process.env.JWT_SECRET));
 
 // Routes
+app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/cart", cartRoutes);
 app.use("/api/v1/wishlist", wishlistRoutes);
 app.use("/api/v1/products", productRoutes);

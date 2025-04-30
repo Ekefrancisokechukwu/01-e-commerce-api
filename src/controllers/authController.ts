@@ -148,7 +148,7 @@ export const logout = async (req: Request, res: Response) => {
       signed: true,
     });
 
-    res.json({ message: "Logged out successfully" });
+    res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     res.status(400).json({ error: "Error logging out" });
   }
@@ -156,7 +156,7 @@ export const logout = async (req: Request, res: Response) => {
 
 export const getProfile = async (req: Request, res: Response) => {
   const user = await User.findById((req as any).user.id).select("-password");
-  res.json(user);
+  res.status(200).json(user);
 };
 
 export const updateProfile = async (req: Request, res: Response) => {
