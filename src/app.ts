@@ -12,7 +12,7 @@ import cookieParser from "cookie-parser";
 import { notfound } from "./middleware/notfound";
 const app: Express = express();
 
-import "../src/libs/cloudinary";
+import "./libs/cloudinary";
 
 // Middleware
 app.use(express.json());
