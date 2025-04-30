@@ -14,6 +14,7 @@ const router = Router();
 
 // Public routes
 router.route("/").get(getAllProducts);
+
 router.route("/:id").get(getProduct);
 
 // Admin-only

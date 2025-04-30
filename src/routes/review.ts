@@ -12,12 +12,10 @@ const router = Router();
 router.get("/:productId/reviews", getProductReviews);
 
 // Protected routes
-router.use(auth);
-
 router
   .route("/:productId/reviews")
-  .post(addProductReview)
-  .patch(updateProductReview)
-  .delete(deleteProductReview);
+  .post(auth, addProductReview)
+  .patch(auth, updateProductReview)
+  .delete(auth, deleteProductReview);
 
 export default router;

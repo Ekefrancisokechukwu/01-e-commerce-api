@@ -7,8 +7,8 @@ import review from "./review";
 
 const router = express.Router();
 
-router.use("/", review);
 router.use("/", productRoutes);
+router.use("/", review);
 router.use("/", variantsRoutes);
 
 export default router;
