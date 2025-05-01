@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   addItemTOcart,
+  clearCart,
   getMyCart,
   removeItem,
   updateCartItem,
@@ -13,9 +14,8 @@ const router = Router();
 router.use(auth);
 
 router.route("/").get(getMyCart);
-
+router.route("/clear").delete(clearCart);
 router.route("/item/:productId").post(addItemTOcart);
-
 router.route("/item/:id").patch(updateCartItem).delete(removeItem);
 
 export default router;

@@ -33,7 +33,7 @@ export const register = async (req: Request, res: Response) => {
     email: user.email,
     id: user._id as string,
     username: user.username,
-    role: user.role,
+    role: "customer",
   });
 
   await user.addRefreshToken(refreshToken);

@@ -88,7 +88,9 @@ export const getMyCart = async (req: Request, res: Response) => {
   }
 
   const cart = await Cart.findOne({ user: user?._id });
-  res.status(200).json({ success: true, cart });
+  res
+    .status(200)
+    .json({ success: true, cart: cart || { user: user._id, items: [] } });
 };
 
 // Update cart items
@@ -158,7 +160,7 @@ export const removeItem = async (req: Request, res: Response) => {
   res.status(200).json({ message: "Item removed from cart" });
 };
 
-// Clear cart item
+// Clear cart
 export const clearCart = async (req: Request, res: Response) => {
   const user = await User.findById(req.user?.id);
 
@@ -166,5 +168,10 @@ export const clearCart = async (req: Request, res: Response) => {
     throw new BadRequestError("User not found");
   }
 
-  res.status(200).json({ message: "Cart cleared" });
+  await Cart.findOneAndDelete({ user: user._id });
+
+  res.status(200).json({
+    success: true,
+    message: "All cart items have been cleared.",
+  });
 };

@@ -1,13 +1,36 @@
 import { Request, Response } from "express";
+import { User } from "../models/User";
+import NotFoundError from "../errors/notfoundError";
+import { Cart } from "../models/Cart";
+import BadRequestError from "../errors/badRequestError";
+import { Orders } from "../models/Orders";
 
-const checkout = async (req: Request, res: Response) => {
-  res.status(201).json({ message: "Order placed" });
+export const checkout = async (req: Request, res: Response) => {
+  const { shippingAddress, paymentMethod } = req.body;
+  const user = await User.findById(req.user?.id);
+
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
+
+  const cart = await Cart.findOne({ user: user._id });
+
+  if (!cart || cart.items.length === 0) {
+    throw new BadRequestError("Cart is empty");
+  }
+
+  res.status(201).json({ message: "Order created" });
 };
 
-const getMyOrders = async (req: Request, res: Response) => {
-  res.status(200).json({ message: "my orders" });
-};
+export const getMyOrders = async (req: Request, res: Response) => {
+  const user = await User.findById(req.user?.id);
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
 
-const cancelOrder = async (req: Request, res: Response) => {
-  res.status(201).json({ message: "orders canceld" });
+  const orders = await Orders.findOne({ user: user._id });
+
+  res
+    .status(200)
+    .json({ success: true, orders: orders || { user: user._id, items: [] } });
 };
