@@ -12,8 +12,8 @@ export interface Product extends Document {
   description: string;
   slug: string;
   price: number;
-  categories: string[];
   tags: string[];
+  categories: string[];
   images: Image[];
   inStock: number;
   brand: string;
@@ -56,7 +56,12 @@ const productSchema = new mongoose.Schema<Product>(
       required: [true, "Please provide product price"],
       min: 0,
     },
-    categories: [String],
+    categories: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Category",
+      },
+    ],
     images: [imageSchema],
     inStock: { type: Number, default: 0 },
     tags: [

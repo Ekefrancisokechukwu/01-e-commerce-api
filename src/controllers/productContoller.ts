@@ -6,15 +6,7 @@ import NotFoundError from "../errors/notfoundError";
 import mongoose from "mongoose";
 import { uploadBufferToCloudinary } from "../libs/uploadToCloudinary";
 import { v2 as cloudinary } from "cloudinary";
-
-// Helper function to generate slug
-const generateSlug = (name: string) => {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9\-]/g, "");
-};
+import { findOrCreateCategories, generateSlug } from "../libs/utils";
 
 // Create a new product with variants
 export const addNewProduct = async (req: Request, res: Response) => {
@@ -63,19 +55,27 @@ export const addNewProduct = async (req: Request, res: Response) => {
       uploadedImages.push(uploadedImage);
     }
 
+    //  handle categories
+    const categoryNames: string[] = JSON.parse(categories);
+    const categoryIds = await findOrCreateCategories(categoryNames);
+
     // Create the product with the uploaded images
     const product = await Product.create({
       name,
       description,
+      categories: categoryIds,
       slug,
       price,
-      categories: JSON.parse(categories),
       tags: JSON.parse(tags),
       images: uploadedImages,
       inStock,
       brand,
       featured,
     });
+
+    const populatedProduct = await Product.findById(product._id).populate(
+      "categories"
+    );
 
     // Handle variants if provided
     if (variants) {
@@ -94,7 +94,7 @@ export const addNewProduct = async (req: Request, res: Response) => {
     res.status(201).json({
       success: true,
       message: "Product created successfully",
-      product,
+      product: populatedProduct,
     });
   } catch (error) {
     // Cleanup: Delete any uploaded images if product creation fails
@@ -179,6 +179,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
     .sort(sort as string)
     .skip((Number(page) - 1) * Number(limit))
     .limit(Number(limit))
+    .populate("categories")
     .populate("variants")
     .populate("reviews");
 
@@ -276,4 +277,3 @@ export const deleteProduct = async (req: Request, res: Response) => {
     message: "Product deleted successfully",
   });
 };
-

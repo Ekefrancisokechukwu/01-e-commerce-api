@@ -4,6 +4,7 @@ import { User } from "../models/User";
 import UnAuthorizedError from "../errors/unAuthorizedError";
 import NotFoundError from "../errors/notfoundError";
 import { User as IUser } from "../types/global";
+import UnAuthenticatedError from "../errors/unAuthenticatedError";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -17,7 +18,7 @@ export const auth = async (
   const token = req.signedCookies.accessToken;
 
   if (!token) {
-    throw new UnAuthorizedError("Authentication token is required.");
+    throw new UnAuthenticatedError("Authentication token is required.");
   }
 
   const decoded = jwt.verify(

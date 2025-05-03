@@ -19,7 +19,19 @@ export const checkout = async (req: Request, res: Response) => {
     throw new BadRequestError("Cart is empty");
   }
 
-  res.status(201).json({ message: "Order created" });
+  const order = new Orders({
+    user: user._id,
+    items: cart.items,
+    totalPrice: cart.totalPrice,
+    totalItems: cart.totalItems,
+    paymentStatus: "pending",
+    paymentMethod,
+    shippingAddress,
+  });
+
+  await order.save();
+
+  res.status(201).json({ message: "Order created", order });
 };
 
 export const getMyOrders = async (req: Request, res: Response) => {
