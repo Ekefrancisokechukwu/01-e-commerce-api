@@ -12,6 +12,8 @@ import combinedProductsRoutes from "./routes/combinedProductsRoutes";
 import { errorHandler } from "./middleware/errorHandler";
 import cookieParser from "cookie-parser";
 import { notfound } from "./middleware/notfound";
+import cors from "cors";
+
 const app: Express = express();
 
 import "./libs/cloudinary";
@@ -20,6 +22,7 @@ import "./libs/cloudinary";
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(process.env.JWT_SECRET));
+app.use(cors({ origin: "*" }));
 
 // Routes
 app.use("/api/v1/categories", categoryRoutes);
