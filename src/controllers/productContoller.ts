@@ -219,9 +219,7 @@ export const getProduct = async (req: Request, res: Response) => {
     throw new NotFoundError("Product not found");
   }
 
-  res.status(200).json({
-    product,
-  });
+  res.status(200).json(product);
 };
 
 // Update a product
