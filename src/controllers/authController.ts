@@ -77,7 +77,8 @@ export const login = async (req: Request, res: Response) => {
     role: user.role,
   };
 
-  const { accessToken, refreshToken } = attachcookiesToResponse(res, payload);
+  attachcookiesToResponse(res, payload);
+  const { accessToken, refreshToken } = generateTokens(payload);
 
   // Persist refresh token
   await user.addRefreshToken(refreshToken);
