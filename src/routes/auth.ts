@@ -17,7 +17,7 @@ router.post("/login", login);
 router.post("/refresh-token", refreshToken);
 
 // Protected routes
-router.route("/profile").get(auth, getProfile).put(auth, updateProfile);
+router.route("/me").get(auth, getProfile).put(auth, updateProfile);
 router.post("/logout", auth, logout);
 
 export default router;

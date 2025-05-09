@@ -29,7 +29,7 @@ app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/orders", ordersRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/cart", cartRoutes);
-app.use("/api/v1/wishlist", wishlistRoutes);
+app.use("/api/v1/wishlists", wishlistRoutes);
 app.use("/api/v1/products", combinedProductsRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
