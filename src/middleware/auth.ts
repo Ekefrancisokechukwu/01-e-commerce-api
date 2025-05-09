@@ -15,7 +15,7 @@ export const auth = async (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.signedCookies.accessToken;
+  const token = req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
     throw new UnAuthenticatedError("Authentication token is required.");
