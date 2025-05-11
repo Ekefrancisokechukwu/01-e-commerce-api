@@ -39,7 +39,16 @@ export const addItemToWishlist = async (req: Request, res: Response) => {
 
   await wishlist.save();
 
-  res.status(201).json({ message: "Product added to wishlist", wishlist });
+  // Fetch the updated wishlist with populated products
+  const updatedWishlist = await Wishlist.findOne({ user: user._id }).populate(
+    "products"
+  );
+
+  res.status(201).json({
+    success: true,
+    message: "Product added to wishlist",
+    wishlist: updatedWishlist,
+  });
 };
 
 export const getMyWishlist = async (req: Request, res: Response) => {
@@ -53,12 +62,10 @@ export const getMyWishlist = async (req: Request, res: Response) => {
     "products"
   );
 
-  res
-    .status(200)
-    .json({
-      success: true,
-      wishlists: wishlists || { user: user._id, products: [] },
-    });
+  res.status(200).json({
+    success: true,
+    wishlists: wishlists || { user: user._id, products: [] },
+  });
 };
 
 export const removeItemFromWishlist = async (req: Request, res: Response) => {
@@ -69,13 +76,15 @@ export const removeItemFromWishlist = async (req: Request, res: Response) => {
     throw new NotFoundError("User not found");
   }
 
-  await Wishlist.findOneAndUpdate(
+  const updatedWishlist = await Wishlist.findOneAndUpdate(
     { user: user._id },
     { $pull: { products: productId } },
     { new: true }
-  );
+  ).populate("products");
 
-  res
-    .status(200)
-    .json({ success: true, message: "Product removed from Wishlist" });
+  res.status(200).json({
+    success: true,
+    message: "Product removed from Wishlist",
+    wishlist: updatedWishlist,
+  });
 };
