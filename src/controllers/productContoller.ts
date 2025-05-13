@@ -275,3 +275,25 @@ export const deleteProduct = async (req: Request, res: Response) => {
     message: "Product deleted successfully",
   });
 };
+
+export const getFilters = async (req: Request, res: Response) => {
+  // Stocks
+  const result = await Product.aggregate([
+    {
+      $facet: {
+        inStock: [{ $match: { inStock: { $gt: 0 } } }, { $count: "count" }],
+        outOfStock: [{ $match: { inStock: 0 } }, { $count: "count" }],
+      },
+    },
+  ]);
+
+  const stockStats = {
+    inStock: result[0].inStock[0]?.count || 0,
+    outOfStock: result[0].outOfStock[0]?.count || 0,
+  };
+
+  // products heightst price
+  // const [highestProduct];
+
+  res.status(200).json({ stockStats });
+};

@@ -15,8 +15,9 @@ export const addProductReview = async (req: Request, res: Response) => {
   }
 
   if (!comment.trim()) {
-    throw new BadRequestError("Comment is required");
+    throw new BadRequestError("Comment is required!");
   }
+
   if (rating < 1) {
     throw new BadRequestError("Rating must be at least 1");
   }
@@ -76,7 +77,7 @@ export const updateProductReview = async (req: Request, res: Response) => {
 };
 
 export const getProductReviews = async (req: Request, res: Response) => {
-  const { productId } = req.body;
+  const { productId } = req.params;
 
   const reviews = await Review.find({ product: productId });
 

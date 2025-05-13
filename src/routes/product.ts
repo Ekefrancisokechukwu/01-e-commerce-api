@@ -7,6 +7,7 @@ import {
   getProduct,
   updateProduct,
   deleteProduct,
+  getFilters,
 } from "../controllers/productContoller";
 import upload from "../libs/multer";
 
@@ -14,6 +15,7 @@ const router = Router();
 
 // Public routes
 router.route("/").get(getAllProducts);
+router.route("/filters").get(getFilters);
 
 router.route("/:id").get(getProduct);
 
