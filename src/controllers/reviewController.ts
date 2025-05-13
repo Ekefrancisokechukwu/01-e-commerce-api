@@ -79,7 +79,10 @@ export const updateProductReview = async (req: Request, res: Response) => {
 export const getProductReviews = async (req: Request, res: Response) => {
   const { productId } = req.params;
 
-  const reviews = await Review.find({ product: productId });
+  const reviews = await Review.find({ product: productId }).populate({
+    path: "user",
+    select: "_id username email",
+  });
 
   res.status(200).json({ success: true, reviews });
 };
