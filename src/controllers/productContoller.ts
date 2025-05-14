@@ -287,13 +287,81 @@ export const getFilters = async (req: Request, res: Response) => {
     },
   ]);
 
+  // Product stock
   const stockStats = {
     inStock: result[0].inStock[0]?.count || 0,
     outOfStock: result[0].outOfStock[0]?.count || 0,
   };
 
   // products heightst price
-  // const [highestProduct];
+  const [product] = await Product.aggregate([
+    { $sort: { price: -1 } },
+    { $limit: 1 },
+    { $project: { price: 1 } },
+  ]);
 
-  res.status(200).json({ stockStats });
+  // product tags
+  const tags = await Product.aggregate([
+    { $unwind: "$tags" },
+    { $group: { _id: "$tags", count: { $sum: 1 } } },
+    {
+      $project: {
+        tag: "$_id",
+        count: 1,
+        _id: 0,
+      },
+    },
+    {
+      $sort: { count: -1 },
+    },
+  ]);
+
+  // colors
+  const uniqueColorOptions = await Variant.aggregate([
+    { $unwind: "$options" },
+    { $match: { "options.type": "color" } },
+    {
+      $group: {
+        _id: {
+          hexCode: "$options.hexCode",
+          displayName: "$options.displayName",
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        hexCode: "$_id.hexCode",
+        displayName: "$_id.displayName",
+      },
+    },
+  ]);
+
+  // brands
+  const productsByBrand = await Product.aggregate([
+    {
+      $group: {
+        _id: "$brand",
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $project: {
+        brand: "$_id",
+        count: 1,
+        _id: 0,
+      },
+    },
+    {
+      $sort: { count: -1 },
+    },
+  ]);
+
+  res.status(200).json({
+    stockStats,
+    productHighestPrice: product.price,
+    tags,
+    colors: uniqueColorOptions,
+    brands: productsByBrand,
+  });
 };
