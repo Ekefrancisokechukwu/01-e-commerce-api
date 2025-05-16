@@ -145,6 +145,10 @@ export const getAllProducts = async (req: Request, res: Response) => {
     const selectedBrands = (brands as string).split(",");
     query.brand = { $in: selectedBrands };
   }
+  if (tags) {
+    const seletedTags = (tags as string).split(",");
+    query.tags = { $in: seletedTags };
+  }
 
   if (availability) {
     query.inStock = {};
