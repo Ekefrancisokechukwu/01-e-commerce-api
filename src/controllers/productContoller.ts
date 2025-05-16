@@ -243,6 +243,7 @@ export const getFilters = async (req: Request, res: Response) => {
         _id: {
           hexCode: "$options.hexCode",
           displayName: "$options.displayName",
+          value: "$options.value",
         },
       },
     },
