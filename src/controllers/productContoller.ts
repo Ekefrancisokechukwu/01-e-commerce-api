@@ -142,6 +142,17 @@ export const getAllProducts = async (req: Request, res: Response) => {
     if (minPrice) query.price.$gte = Number(minPrice);
     if (maxPrice) query.price.$lte = Number(maxPrice);
   }
+
+  if (availability) {
+    query.inStock = {};
+    if (availability === "inStock") {
+      query.inStock.$gt = 0;
+    }
+    if (availability === "outOfStock") {
+      query.inStock.$lte = 0;
+    }
+  }
+
   if (search) {
     query.$or = [
       { name: { $regex: search, $options: "i" } },
