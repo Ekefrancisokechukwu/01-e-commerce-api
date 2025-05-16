@@ -120,12 +120,12 @@ export const getAllProducts = async (req: Request, res: Response) => {
     limit = 10,
     sort = "-createdAt",
     category,
-    brand,
     minPrice,
     maxPrice,
     featured,
     search,
     color,
+    brands,
     tags,
     availability,
     rating,
@@ -135,12 +135,15 @@ export const getAllProducts = async (req: Request, res: Response) => {
 
   // Build filter query
   if (category) query.categories = category;
-  if (brand) query.brand = brand;
   if (featured) query.featured = featured === "true";
   if (minPrice || maxPrice) {
     query.price = {};
     if (minPrice) query.price.$gte = Number(minPrice);
     if (maxPrice) query.price.$lte = Number(maxPrice);
+  }
+  if (brands) {
+    const selectedBrands = (brands as string).split(",");
+    query.brand = { $in: selectedBrands };
   }
 
   if (availability) {
