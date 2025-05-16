@@ -113,118 +113,6 @@ export const addNewProduct = async (req: Request, res: Response) => {
   }
 };
 
-// Get all products with optional filtering and pagination
-export const getAllProducts = async (req: Request, res: Response) => {
-  const {
-    page = 1,
-    limit = 10,
-    sort,
-    category,
-    minPrice,
-    maxPrice,
-    featured,
-    search,
-    color,
-    brands,
-    tags,
-    availability,
-    rating,
-  } = req.query;
-
-  const sortMap: Record<string, Record<string, 1 | -1>> = {
-    newest: { createdAt: -1 },
-    price_low_high: { price: 1 },
-    price_high_low: { price: -1 },
-    rating_high_low: { rating: -1 },
-    name_asc: { name: 1 },
-    name_dec: { name: -1 },
-    featured: { featured: -1 },
-  };
-  const sortKey = (sort as string) || "newest";
-  const sortOption = sortMap[sortKey] || { createdAt: -1 };
-
-  const query: any = {};
-
-  // Build filter query
-  if (category) query.categories = category;
-  if (featured) query.featured = featured === "true";
-  if (minPrice || maxPrice) {
-    query.price = {};
-    if (minPrice) query.price.$gte = Number(minPrice);
-    if (maxPrice) query.price.$lte = Number(maxPrice);
-  }
-  if (brands) {
-    const selectedBrands = (brands as string).split(",");
-    query.brand = { $in: selectedBrands };
-  }
-  if (tags) {
-    const seletedTags = (tags as string).split(",");
-    query.tags = { $in: seletedTags };
-  }
-
-  if (availability) {
-    query.inStock = {};
-    if (availability === "inStock") {
-      query.inStock.$gt = 0;
-    }
-    if (availability === "outOfStock") {
-      query.inStock.$lte = 0;
-    }
-  }
-
-  if (search) {
-    query.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { description: { $regex: search, $options: "i" } },
-    ];
-  }
-
-  // Filter by color via Variants
-  if (color) {
-    // Find all product IDs that have a variant matching the color
-    const variantProductIds = await Variant.find({
-      color: color as string,
-    }).distinct("product");
-
-    if (variantProductIds.length === 0) {
-      // No products with that color
-      res.status(200).json({
-        success: true,
-        count: 0,
-        total: 0,
-        totalPages: 0,
-        currentPage: Number(page),
-        products: [],
-      });
-      return;
-    }
-
-    // Constrain the product query to those IDs
-    query._id = query._id
-      ? { ...query._id, $in: variantProductIds }
-      : { $in: variantProductIds };
-  }
-
-  const products = await Product.find(query)
-    .sort(sortOption)
-    .skip((Number(page) - 1) * Number(limit))
-    .limit(Number(limit))
-    .populate("categories")
-    .populate("variants")
-    .populate("reviews");
-
-  const total = await Product.countDocuments(query);
-
-  res.status(200).json({
-    success: true,
-    products,
-    count: products.length,
-    total,
-    totalPages: Math.ceil(total / Number(limit)),
-    currentPage: Number(page),
-  });
-};
-
 // Get a single product by ID or slug
 export const getProduct = async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -393,5 +281,151 @@ export const getFilters = async (req: Request, res: Response) => {
     tags,
     colors: uniqueColorOptions,
     brands: productsByBrand,
+  });
+};
+
+// Helper function to get sort options
+const getSortOptions = (sort: string | undefined) => {
+  const sortMap: Record<string, Record<string, 1 | -1>> = {
+    newest: { createdAt: -1 },
+    price_low_high: { price: 1 },
+    price_high_low: { price: -1 },
+    rating_high_low: { rating: -1 },
+    name_asc: { name: 1 },
+    name_dec: { name: -1 },
+    featured: { featured: -1 },
+  };
+  const sortKey = sort || "newest";
+  return sortMap[sortKey] || { createdAt: -1 };
+};
+
+// Helper function to build filter query
+const buildFilterQuery = (queryParams: any) => {
+  const {
+    category,
+    featured,
+    minPrice,
+    maxPrice,
+    brands,
+    tags,
+    availability,
+    search,
+  } = queryParams;
+
+  const query: any = {};
+
+  if (category) query.categories = category;
+  if (featured) query.featured = featured === "true";
+
+  if (minPrice || maxPrice) {
+    query.price = {};
+    if (minPrice) query.price.$gte = Number(minPrice);
+    if (maxPrice) query.price.$lte = Number(maxPrice);
+  }
+
+  if (brands) {
+    const selectedBrands = (brands as string).split(",");
+    query.brand = { $in: selectedBrands };
+  }
+
+  if (tags) {
+    const selectedTags = (tags as string).split(",");
+    query.tags = { $in: selectedTags };
+  }
+
+  if (availability) {
+    query.inStock = {};
+    if (availability === "inStock") {
+      query.inStock.$gt = 0;
+    }
+    if (availability === "outOfStock") {
+      query.inStock.$lte = 0;
+    }
+  }
+
+  if (search) {
+    query.$or = [
+      { name: { $regex: search, $options: "i" } },
+      { description: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  return query;
+};
+
+// Helper function to handle color filtering
+const handleColorFilter = async (
+  colors: string | undefined,
+  existingQuery: any
+) => {
+  if (!colors) return existingQuery;
+
+  const colorArray = (colors as string).split(",").map((c) => c.trim());
+
+  const variantsWithColors = await Variant.find({
+    options: {
+      $elemMatch: {
+        type: "color",
+        value: { $in: colorArray },
+      },
+    },
+  }).select("product");
+
+  const productIds = [
+    ...new Set(variantsWithColors.map((v) => v.product.toString())),
+  ];
+
+  if (productIds.length === 0) return null;
+
+  return {
+    ...existingQuery,
+    _id: { $in: productIds },
+  };
+};
+
+// Get all products with optional filtering and pagination
+export const getAllProducts = async (req: Request, res: Response) => {
+  const { page = 1, limit = 10, sort, colors } = req.query;
+
+  // Get sort options
+  const sortOption = getSortOptions(sort as string);
+
+  // Build base filter query
+  const baseQuery = buildFilterQuery(req.query);
+
+  // Handle color filtering
+  const finalQuery = await handleColorFilter(colors as string, baseQuery);
+
+  // If no products found with color filter
+  if (finalQuery === null) {
+    res.status(200).json({
+      success: true,
+      count: 0,
+      total: 0,
+      totalPages: 0,
+      currentPage: Number(page),
+      products: [],
+    });
+    return;
+  }
+
+  // Fetch products with pagination
+  const products = await Product.find(finalQuery)
+    .sort(sortOption)
+    .skip((Number(page) - 1) * Number(limit))
+    .limit(Number(limit))
+    .populate("categories")
+    .populate("variants")
+    .populate("reviews");
+
+  const total = await Product.countDocuments(finalQuery);
+
+  res.status(200).json({
+    success: true,
+    products,
+    count: products.length,
+    total,
+    totalPages: Math.ceil(total / Number(limit)),
+    currentPage: Number(page),
   });
 };
