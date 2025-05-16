@@ -252,6 +252,7 @@ export const getFilters = async (req: Request, res: Response) => {
         _id: 0,
         hexCode: "$_id.hexCode",
         displayName: "$_id.displayName",
+        value: "$_id.value",
       },
     },
   ]);
