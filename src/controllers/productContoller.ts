@@ -118,7 +118,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
   const {
     page = 1,
     limit = 10,
-    sort = "-createdAt",
+    sort,
     category,
     minPrice,
     maxPrice,
@@ -130,6 +130,18 @@ export const getAllProducts = async (req: Request, res: Response) => {
     availability,
     rating,
   } = req.query;
+
+  const sortMap: Record<string, Record<string, 1 | -1>> = {
+    newest: { createdAt: -1 },
+    price_low_high: { price: 1 },
+    price_high_low: { price: -1 },
+    rating_high_low: { rating: -1 },
+    name_asc: { name: 1 },
+    name_dec: { name: -1 },
+    featured: { featured: -1 },
+  };
+  const sortKey = (sort as string) || "newest";
+  const sortOption = sortMap[sortKey] || { createdAt: -1 };
 
   const query: any = {};
 
@@ -194,7 +206,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
   }
 
   const products = await Product.find(query)
-    .sort(sort as string)
+    .sort(sortOption)
     .skip((Number(page) - 1) * Number(limit))
     .limit(Number(limit))
     .populate("categories")
