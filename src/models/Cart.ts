@@ -6,7 +6,8 @@ interface CartItem {
   product: Types.ObjectId;
   variant?: Types.ObjectId;
   quantity: number;
-  price: number;
+  unitPrice: number;
+  // itemTotal: number;
   selectedOptions?: {
     name: string;
     value: string;
@@ -24,6 +25,31 @@ interface Cart extends Document {
   recalculateTotals: () => void;
 }
 
+// sub-schema  cart item
+const cartItemSchema = new Schema<CartItem>(
+  {
+    product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+    variant: { type: Schema.Types.ObjectId, ref: "Variant" },
+    quantity: { type: Number, required: true, min: 1 },
+    unitPrice: { type: Number, required: true },
+    selectedOptions: [
+      {
+        name: String,
+        value: String,
+        type: {
+          type: String,
+          enum: ["color", "size", "material", "style"],
+        },
+      },
+    ],
+  },
+  { _id: false, toObject: { virtuals: true }, toJSON: { virtuals: true } }
+);
+
+cartItemSchema.virtual("itemTotal").get(function (this: CartItem) {
+  return this.unitPrice * this.quantity;
+});
+
 const cartSchema = new Schema<Cart>(
   {
     user: {
@@ -31,38 +57,7 @@ const cartSchema = new Schema<Cart>(
       ref: "User",
       required: true,
     },
-    items: [
-      {
-        product: {
-          type: Schema.Types.ObjectId,
-          ref: "Product",
-          required: true,
-        },
-        variant: {
-          type: Schema.Types.ObjectId,
-          ref: "Variant",
-        },
-        quantity: {
-          type: Number,
-          required: true,
-          min: 1,
-        },
-        price: {
-          type: Number,
-          required: true,
-        },
-        selectedOptions: [
-          {
-            name: String,
-            value: String,
-            type: {
-              type: String,
-              enum: ["color", "size", "material", "style"],
-            },
-          },
-        ],
-      },
-    ],
+    items: [cartItemSchema],
     totalPrice: {
       type: Number,
       default: 0,
@@ -72,7 +67,7 @@ const cartSchema = new Schema<Cart>(
       default: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true, toObject: { virtuals: true }, toJSON: { virtuals: true } }
 );
 
 cartSchema.methods.recalculateTotals = function () {
@@ -81,7 +76,7 @@ cartSchema.methods.recalculateTotals = function () {
     0
   );
   this.totalPrice = this.items.reduce(
-    (sum: number, item: CartItem) => sum + item.price * item.quantity,
+    (sum: number, item: CartItem) => sum + item.unitPrice * item.quantity,
     0
   );
 };

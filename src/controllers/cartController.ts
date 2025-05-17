@@ -64,7 +64,7 @@ export const addItemTOcart = async (req: Request, res: Response) => {
       product: product._id as Types.ObjectId,
       variant: variant?._id as Types.ObjectId,
       quantity,
-      price: itemPrice,
+      unitPrice: itemPrice,
       selectedOptions,
     });
   }
