@@ -87,7 +87,13 @@ export const getMyCart = async (req: Request, res: Response) => {
     throw new BadRequestError("User not found");
   }
 
-  const cart = await Cart.findOne({ user: user?._id });
+  const cart = await Cart.findOne({ user: user?._id })
+    .populate({
+      path: "items.product",
+      select: "name price images brand",
+    })
+    .populate("items.variant");
+
   res
     .status(200)
     .json({ success: true, cart: cart || { user: user._id, items: [] } });
