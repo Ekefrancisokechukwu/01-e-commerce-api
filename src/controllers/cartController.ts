@@ -102,7 +102,7 @@ export const getMyCart = async (req: Request, res: Response) => {
 // Update cart items
 export const updateCartItem = async (req: Request, res: Response) => {
   const user = await User.findById(req.user?.id);
-  const { productId } = req.params;
+  const { id: productId } = req.params;
   const { variantId, quantity } = req.body;
 
   if (!user) {
@@ -132,7 +132,16 @@ export const updateCartItem = async (req: Request, res: Response) => {
   cart.items[itemIndex].quantity = quantity;
   cart.recalculateTotals();
 
-  res.status(200).json({ message: "Cart item quantity updated", cart });
+  await cart.save();
+
+  res.status(200).json({
+    message: "Cart item quantity updated",
+    cart: {
+      totalItems: cart.totalItems,
+      totalPrice: cart.totalPrice,
+    },
+    item: cart.items[itemIndex],
+  });
 };
 
 // Remove cart item
