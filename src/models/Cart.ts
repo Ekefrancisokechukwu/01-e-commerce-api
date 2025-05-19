@@ -43,7 +43,7 @@ const cartItemSchema = new Schema<CartItem>(
       },
     ],
   },
-  { _id: false, toObject: { virtuals: true }, toJSON: { virtuals: true } }
+  { _id: true, toObject: { virtuals: true }, toJSON: { virtuals: true } }
 );
 
 cartItemSchema.virtual("itemTotal").get(function (this: CartItem) {

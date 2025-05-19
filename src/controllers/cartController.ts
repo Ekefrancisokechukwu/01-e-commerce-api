@@ -149,6 +149,8 @@ export const removeItem = async (req: Request, res: Response) => {
   const user = await User.findById(req.user?.id);
   const { id } = req.params;
 
+  console.log(id);
+
   if (!user) {
     throw new BadRequestError("User not found");
   }
