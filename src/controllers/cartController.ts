@@ -102,8 +102,10 @@ export const getMyCart = async (req: Request, res: Response) => {
 // Update cart items
 export const updateCartItem = async (req: Request, res: Response) => {
   const user = await User.findById(req.user?.id);
-  const { id: productId } = req.params;
+  const { id: itemId } = req.params;
   const { variantId, quantity } = req.body;
+
+  // console.log(productId);
 
   if (!user) {
     throw new BadRequestError("User not found");
@@ -121,7 +123,7 @@ export const updateCartItem = async (req: Request, res: Response) => {
 
   const itemIndex = cart.items.findIndex(
     (item) =>
-      item.product.toString() === productId &&
+      item._id?.toString() === itemId &&
       (!variantId || item.variant?.toString() === variantId)
   );
 
@@ -148,8 +150,6 @@ export const updateCartItem = async (req: Request, res: Response) => {
 export const removeItem = async (req: Request, res: Response) => {
   const user = await User.findById(req.user?.id);
   const { id } = req.params;
-
-  console.log(id);
 
   if (!user) {
     throw new BadRequestError("User not found");
