@@ -421,12 +421,13 @@ export const getAllProducts = async (req: Request, res: Response) => {
     .populate("reviews");
 
   const total = await Product.countDocuments(finalQuery);
+  const count = await Product.countDocuments();
 
   res.status(200).json({
     success: true,
     products,
-    count: products.length,
-    total,
+    totalItems: count,
+    filteredTotal: total,
     totalPages: Math.ceil(total / Number(limit)),
     currentPage: Number(page),
   });
